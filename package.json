@@ -1,0 +1,20 @@
+{
+  "name": "iyf-s12-week-07-anthony-mugwe",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Week 7 modular, tested and persistent TaskFlow To-Do List",
+  "scripts": {
+    "test": "node --test",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "eslint": "^9.39.0",
+    "prettier": "^3.6.2"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
