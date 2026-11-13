@@ -2,7 +2,7 @@ import { loadFilter, loadTasks, saveFilter, saveTasks } from './storage.js';
 
 export const state = {
   tasks: loadTasks(),
-  filter: loadFilter()
+  filter: loadFilter(),
 };
 
 export function updateTasks(nextTasks) {

@@ -1,19 +1,27 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  addTask, clearCompleted, countActive, createTask, deleteTask,
-  editTask, filterTasks, toggleTask
+  addTask,
+  clearCompleted,
+  countActive,
+  createTask,
+  deleteTask,
+  editTask,
+  filterTasks,
+  toggleTask,
 } from '../js/todo-logic.js';
 
 const sampleTasks = [
   { id: 1, text: 'Learn modules', completed: false },
   { id: 2, text: 'Write tests', completed: true },
-  { id: 3, text: 'Review code', completed: false }
+  { id: 3, text: 'Review code', completed: false },
 ];
 
 test('createTask trims text and creates an active task', () => {
   assert.deepEqual(createTask('  Learn testing  ', 10), {
-    id: 10, text: 'Learn testing', completed: false
+    id: 10,
+    text: 'Learn testing',
+    completed: false,
   });
 });
 
@@ -37,14 +45,26 @@ test('addTask does not mutate the original array', () => {
 });
 
 test('filters return the expected tasks', () => {
-  assert.deepEqual(filterTasks(sampleTasks, 'active').map(task => task.id), [1, 3]);
-  assert.deepEqual(filterTasks(sampleTasks, 'completed').map(task => task.id), [2]);
+  assert.deepEqual(
+    filterTasks(sampleTasks, 'active').map((task) => task.id),
+    [1, 3],
+  );
+  assert.deepEqual(
+    filterTasks(sampleTasks, 'completed').map((task) => task.id),
+    [2],
+  );
   assert.equal(filterTasks(sampleTasks, 'all').length, 3);
 });
 
 test('delete, edit, clear completed and active count work', () => {
-  assert.deepEqual(deleteTask(sampleTasks, 1).map(task => task.id), [2, 3]);
-  assert.equal(editTask(sampleTasks, 1, 'Updated').find(task => task.id === 1).text, 'Updated');
-  assert.deepEqual(clearCompleted(sampleTasks).map(task => task.id), [1, 3]);
+  assert.deepEqual(
+    deleteTask(sampleTasks, 1).map((task) => task.id),
+    [2, 3],
+  );
+  assert.equal(editTask(sampleTasks, 1, 'Updated').find((task) => task.id === 1).text, 'Updated');
+  assert.deepEqual(
+    clearCompleted(sampleTasks).map((task) => task.id),
+    [1, 3],
+  );
   assert.equal(countActive(sampleTasks), 2);
 });

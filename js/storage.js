@@ -2,11 +2,13 @@ const STORAGE_KEY = 'taskflowTasks';
 const FILTER_KEY = 'taskflowFilter';
 
 function isValidTask(task) {
-  return task !== null
-    && typeof task === 'object'
-    && (typeof task.id === 'string' || typeof task.id === 'number')
-    && typeof task.text === 'string'
-    && typeof task.completed === 'boolean';
+  return (
+    task !== null &&
+    typeof task === 'object' &&
+    (typeof task.id === 'string' || typeof task.id === 'number') &&
+    typeof task.text === 'string' &&
+    typeof task.completed === 'boolean'
+  );
 }
 
 export function loadTasks() {

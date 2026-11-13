@@ -13,6 +13,7 @@ I also included a simple Shopping Cart demonstration to practise JavaScript modu
 ## Features
 
 ### TaskFlow To-Do List
+
 - Add new tasks.
 - Mark tasks as completed.
 - Delete tasks.
@@ -22,6 +23,7 @@ I also included a simple Shopping Cart demonstration to practise JavaScript modu
 - Display the number of remaining tasks.
 
 ### Shopping Cart
+
 - Display products.
 - Add products to the cart.
 - Manage cart items.
@@ -75,3 +77,4 @@ iyf-s12-week-07-Anthony-mugwe/
     ├── day-3-destructuring.js
     ├── day-4-error-handling.js
     └── day-5-modules.js
+```

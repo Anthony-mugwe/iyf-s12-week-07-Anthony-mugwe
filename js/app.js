@@ -1,196 +1,206 @@
-"use strict";
-const tasks = [];
-let currentFilter = "all";
-let nextTaskId = 1;
+import { state, updateTasks, updateFilter } from './state.js';
+
+import {
+  createTask,
+  addTask,
+  toggleTask,
+  deleteTask,
+  clearCompleted,
+  editTask,
+} from './todo-logic.js';
+
+import { render } from './ui.js';
+
+const form = document.querySelector('#task-form');
+const input = document.querySelector('#task-input');
+const taskList = document.querySelector('#task-list');
+const message = document.querySelector('#form-message');
+const itemsLeft = document.querySelector('#items-left');
+const emptyState = document.querySelector('#empty-message');
+const clearButton = document.querySelector('#clear-completed');
+const filterButtons = document.querySelectorAll('.filter-button');
+const taskCount = document.querySelector('#task-count');
+
+const elements = {
+  taskList,
+  itemsLeft,
+  emptyState,
+  clearCompleted: clearButton,
+  filterButtons,
+  taskCount,
+};
+
 let editingTaskId = null;
 
-const form = document.querySelector("#task-form");
-const input = document.querySelector("#task-input");
-const list = document.querySelector("#task-list");
-const message = document.querySelector("#form-message");
-const emptyMessage = document.querySelector("#empty-message");
-const itemsLeft = document.querySelector("#items-left");
-const clearButton = document.querySelector("#clear-completed");
-const filters = document.querySelectorAll(".filter-button");
-
-function addTask(value) {
-  const text = value.trim();
-  if (!text) {
-    message.textContent = "Please enter a task.";
-    input.focus();
-    return false;
-  }
-  tasks.push({ id: nextTaskId++, text, completed: false });
-  message.textContent = "";
-  renderTasks();
-  return true;
-}
-
-function getVisibleTasks() {
-  if (currentFilter === "active") return tasks.filter(task => !task.completed);
-  if (currentFilter === "completed") return tasks.filter(task => task.completed);
-  return tasks;
-}
-
-function makeTaskElement(task) {
-  const li = document.createElement("li");
-  li.classList.add("task-item");
-  li.dataset.taskId = String(task.id);
-  if (task.completed) li.classList.add("completed");
-
-  const checkbox = document.createElement("input");
-  checkbox.type = "checkbox";
-  checkbox.classList.add("task-toggle");
-  checkbox.checked = task.completed;
-  checkbox.setAttribute("aria-label", `Toggle ${task.text}`);
-
-  const text = document.createElement("span");
-  text.classList.add("task-text");
-  text.textContent = task.text;
-
-  const actions = document.createElement("div");
-  actions.classList.add("task-actions");
-
-  const edit = document.createElement("button");
-  edit.type = "button";
-  edit.classList.add("edit-button");
-  edit.textContent = "Edit";
-
-  const remove = document.createElement("button");
-  remove.type = "button";
-  remove.classList.add("delete-button");
-  remove.textContent = "Delete";
-
-  actions.append(edit, remove);
-  li.append(checkbox, text, actions);
-  return li;
-}
-
 function renderTasks() {
-  list.replaceChildren();
-  const visible = getVisibleTasks();
-  visible.forEach(task => list.appendChild(makeTaskElement(task)));
-  emptyMessage.hidden = visible.length > 0;
-  emptyMessage.textContent = tasks.length === 0 ? "No tasks yet. Add your first task above!" : "No tasks match this filter.";
-  const remaining = tasks.filter(task => !task.completed).length;
-  itemsLeft.textContent = `${remaining} ${remaining === 1 ? "item" : "items"} left`;
+  render(state, elements);
 }
 
-function findTask(id) {
-  return tasks.find(task => task.id === Number(id));
-}
+function handleAddTask(event) {
+  event.preventDefault();
 
-function toggleTask(id) {
-  const task = findTask(id);
-  if (!task) return;
-  task.completed = !task.completed;
+  const task = createTask(input.value);
+
+  if (!task) {
+    message.textContent = 'Please enter a valid task.';
+    input.focus();
+    return;
+  }
+
+  updateTasks(addTask(state.tasks, task));
+
+  message.textContent = '';
+  input.value = '';
+  input.focus();
+
   renderTasks();
 }
 
-function deleteTask(id) {
-  const index = tasks.findIndex(task => task.id === Number(id));
-  if (index < 0) return;
-  if (editingTaskId === Number(id)) editingTaskId = null;
-  tasks.splice(index, 1);
-  renderTasks();
+function getTaskId(element) {
+  const taskItem = element.closest('.task-item');
+
+  if (!taskItem || !taskList.contains(taskItem)) {
+    return null;
+  }
+
+  return taskItem.dataset.id;
+}
+
+function handleTaskClick(event) {
+  const target = event.target;
+  const taskId = getTaskId(target);
+
+  if (taskId === null) return;
+
+  const id = Number(taskId);
+
+  if (target.closest('.delete-button')) {
+    updateTasks(deleteTask(state.tasks, id));
+
+    if (String(editingTaskId) === String(id)) {
+      editingTaskId = null;
+    }
+
+    message.textContent = '';
+    renderTasks();
+    return;
+  }
+
+  if (target.closest('.task-check')) {
+    updateTasks(toggleTask(state.tasks, id));
+    renderTasks();
+    return;
+  }
+
+  if (target.closest('.edit-button')) {
+    startEditing(id);
+  }
 }
 
 function startEditing(id) {
-  const task = findTask(id);
+  const task = state.tasks.find((item) => String(item.id) === String(id));
+
   if (!task) return;
+
   editingTaskId = task.id;
   renderTasks();
-  const li = list.querySelector(`[data-task-id="${task.id}"]`);
-  if (!li) return;
-  const oldText = li.querySelector(".task-text");
-  const editor = document.createElement("input");
-  editor.type = "text";
+
+  const taskItem = taskList.querySelector(`[data-id="${task.id}"]`);
+
+  if (!taskItem) return;
+
+  const oldText = taskItem.querySelector('.task-text');
+
+  if (!oldText) return;
+
+  const editor = document.createElement('input');
+
+  editor.type = 'text';
+  editor.className = 'edit-input';
   editor.maxLength = 200;
-  editor.classList.add("edit-input");
   editor.value = task.text;
-  editor.setAttribute("aria-label", "Edit task text");
+  editor.setAttribute('aria-label', 'Edit task');
+
   oldText.replaceWith(editor);
+
   editor.focus();
   editor.select();
 }
 
-function saveEdit(id, value) {
-  const task = findTask(id);
+function saveEdit(id, text) {
+  const task = state.tasks.find((item) => String(item.id) === String(id));
+
   if (!task) return;
-  const text = value.trim();
-  if (!text) {
-    message.textContent = "A task cannot be empty. The original text was kept.";
+
+  if (!text.trim()) {
+    message.textContent = 'A task cannot be empty.';
     editingTaskId = null;
     renderTasks();
     return;
   }
-  task.text = text;
+
+  updateTasks(editTask(state.tasks, task.id, text));
+
   editingTaskId = null;
-  message.textContent = "";
+  message.textContent = '';
+
   renderTasks();
 }
 
-function cancelEdit() {
-  editingTaskId = null;
-  renderTasks();
-}
+function handleTaskKeydown(event) {
+  if (!event.target.matches('.edit-input')) return;
 
-form.addEventListener("submit", event => {
-  event.preventDefault();
-  if (addTask(input.value)) {
-    input.value = "";
-    input.focus();
-  }
-});
+  const taskId = getTaskId(event.target);
 
-/* One click listener on the task list: event delegation. */
-list.addEventListener("click", event => {
-  const li = event.target.closest(".task-item");
-  if (!li || !list.contains(li) || event.target.closest(".edit-input")) return;
-  const id = li.dataset.taskId;
-  if (event.target.closest(".delete-button")) return deleteTask(id);
-  if (event.target.closest(".edit-button")) return startEditing(id);
-  if (event.target.closest(".task-toggle") || event.target.closest(".task-text")) return toggleTask(id);
-});
+  if (taskId === null) return;
 
-list.addEventListener("dblclick", event => {
-  const text = event.target.closest(".task-text");
-  if (!text || !list.contains(text)) return;
-  const li = text.closest(".task-item");
-  if (li) startEditing(li.dataset.taskId);
-});
+  const id = Number(taskId);
 
-list.addEventListener("keydown", event => {
-  if (!event.target.matches(".edit-input")) return;
-  const li = event.target.closest(".task-item");
-  if (!li) return;
-  if (event.key === "Enter") {
+  if (event.key === 'Enter') {
     event.preventDefault();
-    saveEdit(li.dataset.taskId, event.target.value);
-  } else if (event.key === "Escape") {
-    event.preventDefault();
-    cancelEdit();
+    saveEdit(id, event.target.value);
   }
-});
 
-filters.forEach(button => {
-  button.addEventListener("click", () => {
-    currentFilter = button.dataset.filter;
-    filters.forEach(item => {
-      const active = item.dataset.filter === currentFilter;
-      item.classList.toggle("active", active);
-      item.setAttribute("aria-pressed", String(active));
-    });
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    editingTaskId = null;
+    message.textContent = '';
     renderTasks();
-  });
+  }
+}
+
+function handleFilterClick(event) {
+  const button = event.target.closest('.filter-button');
+
+  if (!button) return;
+
+  const selectedFilter = button.dataset.filter;
+
+  if (!['all', 'active', 'completed'].includes(selectedFilter)) {
+    return;
+  }
+
+  updateFilter(selectedFilter);
+  renderTasks();
+}
+
+function handleClearCompleted() {
+  updateTasks(clearCompleted(state.tasks));
+
+  editingTaskId = null;
+  message.textContent = '';
+
+  renderTasks();
+}
+
+form.addEventListener('submit', handleAddTask);
+taskList.addEventListener('click', handleTaskClick);
+taskList.addEventListener('keydown', handleTaskKeydown);
+
+filterButtons.forEach((button) => {
+  button.addEventListener('click', handleFilterClick);
 });
 
-clearButton.addEventListener("click", () => {
-  for (let i = tasks.length - 1; i >= 0; i -= 1) {
-    if (tasks[i].completed) tasks.splice(i, 1);
-  }
-  editingTaskId = null;
-  renderTasks();
-});
+clearButton.addEventListener('click', handleClearCompleted);
 
 renderTasks();

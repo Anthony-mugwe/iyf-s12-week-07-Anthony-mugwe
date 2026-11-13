@@ -11,31 +11,29 @@ export function addTask(tasks, task) {
 }
 
 export function toggleTask(tasks, id) {
-  return tasks.map(task => task.id === id
-    ? { ...task, completed: !task.completed }
-    : task);
+  return tasks.map((task) => (task.id === id ? { ...task, completed: !task.completed } : task));
 }
 
 export function deleteTask(tasks, id) {
-  return tasks.filter(task => task.id !== id);
+  return tasks.filter((task) => task.id !== id);
 }
 
 export function clearCompleted(tasks) {
-  return tasks.filter(task => !task.completed);
+  return tasks.filter((task) => !task.completed);
 }
 
 export function editTask(tasks, id, text) {
   const cleanText = String(text).trim();
   if (!cleanText) return [...tasks];
-  return tasks.map(task => task.id === id ? { ...task, text: cleanText } : task);
+  return tasks.map((task) => (task.id === id ? { ...task, text: cleanText } : task));
 }
 
 export function filterTasks(tasks, filter = 'all') {
-  if (filter === 'active') return tasks.filter(task => !task.completed);
-  if (filter === 'completed') return tasks.filter(task => task.completed);
+  if (filter === 'active') return tasks.filter((task) => !task.completed);
+  if (filter === 'completed') return tasks.filter((task) => task.completed);
   return [...tasks];
 }
 
 export function countActive(tasks) {
-  return tasks.filter(task => !task.completed).length;
+  return tasks.filter((task) => !task.completed).length;
 }
